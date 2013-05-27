@@ -14,10 +14,12 @@
 
 # settings
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-ARCHIVE_DIR=/please/configure/me
-MNT_DIR=/tmp/mongolvmsnapback
-VG=VG01
-LV=LVolDataMongodb
+ARCHIVE_DIR=
+MNT_DIR=
+VG=
+LV=
+MODE=
+CFG_NODE=
 
 # archiving settings
 DOW=`date +%w`
@@ -114,6 +116,17 @@ if [ -z "$LV" ]
 then
   echo "[!] Logical volume is not set. Aborting."
   exit 1
+fi
+
+# Make sure the balancer is stopped
+if [ "${MODE}" == "sharded" ]
+then
+  mongo ${CFG_NODE}:27019 --eval 'sh.getBalancerState()' | grep true > /dev/null 2>&1
+  if [ $? = 0 ]
+  then
+    echo "[!] Balancer is running. Aborting."
+    exit 1
+  fi
 fi
 
 echo [+] Pre flight tests complete
